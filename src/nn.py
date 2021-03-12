@@ -2,7 +2,7 @@ import numpy as np
 import random
 import math
 
-L_R  = 0.5
+LEARNING_RATE  = 0.5
 ALPHA = 0.7
 
 class Neuron:
@@ -11,12 +11,14 @@ class Neuron:
         self.layerNum=layerNum # what layer the neuron is in
         self.nextLayerNum=nextLayerNum # the number of neurons in the next layer
         self.weight_vec = [] # connection weights between self.Neuron and the neurons in the next layer
+        self.delta_weight_vec = []
         self.outputVal = 1 # setting the bias output as 1
         self.gradient = 0 
 
     #Setting the weights of all neurons
     def setWeights(self):            
         self.weight_vec = [random.uniform(0,1) for i in range(self.nextLayerNum)]
+        self.delta_weight_vec = [0 for i in range(self.nextLayerNum)]
         print (self.weight_vec)
         
 
@@ -125,7 +127,7 @@ class Network():
         print("Calculating gradients for hidden layers...")
 
         #calculating gradient on hidden layers
-        for lyr in reversed(self.layers[1:-1]):
+        for lyr in reversed(self.layers[:-1]):
             sum_grad = 0
             layer_index = lyr.layerNum
             print("Calculating gradient on layer " + str(layer_index))
@@ -141,11 +143,44 @@ class Network():
     def updateWeights(self):
         #updating weights...
         print("updating weights...")
+
+        for lyr in range( (len(self.layers)-2), -1, -1):
+            print(lyr)
+            print()
+
+            for neuro in range(len(self.layers[lyr].neuron_vec)):
+
+                for w in range(len(self.layers[lyr].neuron_vec[neuro].weight_vec)):
+                    print (str(LEARNING_RATE) + " * " + str(self.layers[lyr].neuron_vec[neuro].outputVal) + " * " + str(self.layers[lyr].neuron_vec[neuro].gradient) + " + " + str(ALPHA) + " * " + str(w))
+                    new_weight = LEARNING_RATE * self.layers[lyr].neuron_vec[neuro].outputVal * self.layers[lyr].neuron_vec[neuro].gradient + ALPHA * self.layers[lyr].neuron_vec[neuro].delta_weight_vec[w]                
+                    print (" = " + str(new_weight))
+                    print ("old weight of neuron " + str(self.layers[lyr].neuron_vec[neuro].n_index) + " = " + str(self.layers[lyr].neuron_vec[neuro].weight_vec[w]))
+                    self.layers[lyr].neuron_vec[neuro].delta_weight_vec[w] = self.layers[lyr].neuron_vec[neuro].weight_vec[w]
+                    self.layers[lyr].neuron_vec[neuro].weight_vec[w] += new_weight
         
-        
+"""         for lyr in reversed(self.layers[:-1]):
 
+            for neuro in lyr.neuron_vec:
+                new_weight_ls = []
+                new_delta_w_ls = [] 
 
+                for w, dw in zip(neuro.weight_vec, neuro.delta_weight_vec):
+                    print (str(LEARNING_RATE) + " * " + str(neuro.outputVal) + " * " + str(neuro.gradient) + " + " + str(ALPHA) + " * " + str(dw))
+                    new_weight = LEARNING_RATE * neuro.outputVal * neuro.gradient + ALPHA*dw
+                    print (" = " + str(new_weight))
+                    print("old weight of neuron " + str(neuro.n_index) + " = " + str(w))
+                    dw = w
+                    new_delta_w_ls.append(dw)
+                    w += new_weight
+                    new_weight_ls.append(w)
+                    print(w)
+                
+            neuro.weight_vec = new_weight_ls
+            neuro.delta_weight_vec = new_delta_w_ls """
 
+     
+        #print(self.layers[0].neuron_vec[0].weight_vec[0])
+        #print(self.layers[0].neuron_vec[0].weight_vec[0])
 
 
 
@@ -173,6 +208,22 @@ if __name__ == '__main__':
 
     net = Network(layer_vec)
     net.initialize_network()
+
+    input_neurons = [1,0]
+
+    print ("****************")
+    print("Forward feeding ... ")
+    print()
+    net.feedForward(input_neurons)
+
+
+    print("*****************")
+    print("Back Propogation ... ")
+    print()
+    target_values = [0]
+    net.backProp(target_values)
+
+    net.updateWeights()
 
     input_neurons = [1,0]
 
